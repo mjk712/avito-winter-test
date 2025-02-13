@@ -1,0 +1,1 @@
+SELECT id,username,coins FROM users WHERE id = $1;
