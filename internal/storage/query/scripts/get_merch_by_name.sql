@@ -1,0 +1,1 @@
+SELECT id,name,price FROM merch WHERE name = $1;

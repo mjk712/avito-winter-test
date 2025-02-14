@@ -19,6 +19,11 @@ type Storage interface {
 	GetUserById(ctx context.Context, userId int) (dao.User, error)
 	GetUserInventory(ctx context.Context, userId int) ([]dao.Inventory, error)
 	GetUserCoinHistory(ctx context.Context, userId int) ([]dao.TransactionHistory, error)
+	GetUserIdByUsername(ctx context.Context, username string) (int, error)
+	TransferCoins(ctx context.Context, fromUserId, toUserId, amount int) error
+	RecordTransaction(ctx context.Context, fromUserId int, toUserId int, amount int, transactionType string) error
+	GetMerchByName(ctx context.Context, name string) (dao.Merch, error)
+	BuyItem(ctx context.Context, userId int, itemId int, price int) error
 }
 
 type Repository struct {
@@ -108,7 +113,7 @@ func (r *Repository) GetUserCoinHistory(ctx context.Context, userId int) ([]dao.
 	for rows.Next() {
 		var t dao.TransactionHistory
 		var fromUser, toUser, merchName *string
-		if err := rows.Scan(&t.TransactionType, &t.Amount, &fromUser, &toUser, &merchName); err != nil {
+		if err := rows.Scan(&t.TransactionType, &t.Amount, &t.Timestamp, &fromUser, &toUser, &merchName); err != nil {
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
 		if fromUser != nil {
@@ -124,4 +129,96 @@ func (r *Repository) GetUserCoinHistory(ctx context.Context, userId int) ([]dao.
 	}
 
 	return history, nil
+}
+
+func (r *Repository) GetUserIdByUsername(ctx context.Context, username string) (int, error) {
+	const op = "storage.postgres.get_user_by_name"
+	var userId int
+	err := r.DB.QueryRowxContext(ctx, query.GetUserIdByUsername, username).Scan(&userId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, fmt.Errorf("%s: user not found", op)
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+	return userId, nil
+}
+
+func (r *Repository) TransferCoins(ctx context.Context, fromUserId, toUserId, amount int) error {
+	const op = "storage.postgres.transfer_coins"
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, query.DecreaseUserCoins, amount, fromUserId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = tx.ExecContext(ctx, query.IncreaseUserCoins, amount, toUserId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return tx.Commit()
+}
+
+func (r *Repository) RecordTransaction(ctx context.Context, fromUserId, toUserId int, amount int, transactionType string) error {
+	const op = "storage.postgres.record_transaction"
+	_, err := r.DB.QueryxContext(ctx, query.RecordTransaction, fromUserId, toUserId, amount, transactionType)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+}
+
+func (r *Repository) GetMerchByName(ctx context.Context, name string) (dao.Merch, error) {
+	const op = "storage.postgres.get_merch_name"
+	var merch dao.Merch
+	err := r.DB.QueryRowContext(ctx, query.GetMerchByName, name).Scan(&merch.Id, &merch.Name, &merch.Price)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return dao.Merch{}, fmt.Errorf("%s: merch not found", op)
+		}
+		return dao.Merch{}, fmt.Errorf("%s: %w", op, err)
+	}
+	return merch, nil
+}
+
+func (r *Repository) BuyItem(ctx context.Context, userId int, itemId int, price int) error {
+	const op = "storage.postgres.buy_item"
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	defer tx.Rollback()
+
+	var userCoins int
+	err = tx.QueryRowContext(ctx, query.GetUserCoins, userId).Scan(&userCoins)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if userCoins < price {
+		return fmt.Errorf("%s: not enough coins", op)
+	}
+
+	_, err = tx.ExecContext(ctx, query.DecreaseUserCoins, price, userId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = tx.ExecContext(ctx, query.AddItemToInventory, userId, itemId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = tx.ExecContext(ctx, query.RecordTransaction, sql.NullInt64{Valid: false}, userId, price, "purchase")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return tx.Commit()
 }

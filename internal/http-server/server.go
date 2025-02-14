@@ -26,8 +26,8 @@ func NewServer(ctx context.Context, log *slog.Logger, cfg *config.Config, merchS
 	router.Route("/api", func(r chi.Router) {
 		r.Post("/auth", handlers.Authenticate(ctx, merchShopService, log))
 		r.With(merch_shop_middleware.AuthMiddleware).Get("/info", handlers.GetUserInfo(ctx, merchShopService, log))
-		//r.With(merch_shop_middleware.AuthMiddleware).Post("/sendCoin", handlers.SendCoin(ctx, merchShopService, log))
-		//r.With(merch_shop_middleware.AuthMiddleware).Get("/buy/{item}", handlers.BuyItem(ctx, merchShopService, log))
+		r.With(merch_shop_middleware.AuthMiddleware).Post("/send-coin", handlers.SendCoin(ctx, merchShopService, log))
+		r.With(merch_shop_middleware.AuthMiddleware).Get("/buy/{item}", handlers.BuyItem(ctx, merchShopService, log))
 	})
 
 	return &http.Server{

@@ -1,0 +1,1 @@
+UPDATE users SET coins = coins + $1 WHERE id = $2;

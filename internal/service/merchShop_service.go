@@ -13,6 +13,8 @@ import (
 type MerchShopService interface {
 	Authenticate(ctx context.Context, reqData dto.AuthRequest) (string, error)
 	GetUserInfo(ctx context.Context, userId int) (dto.InfoResponse, error)
+	SendCoin(ctx context.Context, fromUserId int, req dto.SendCoinRequest) error
+	BuyItem(ctx context.Context, userId int, itemName string) error
 }
 
 type MerchShopServiceImpl struct {
@@ -81,11 +83,62 @@ func (s *MerchShopServiceImpl) GetUserInfo(ctx context.Context, userId int) (dto
 		Coins:     user.Coins,
 		Inventory: toInventoryDTO(inventory),
 		CoinHistory: dto.CoinHistory{
-			Received: toReceivedTransactionsDTO(transactions),
-			Sent:     toSentTransactionsDTO(transactions),
+			Received: toReceivedTransactionsDTO(transactions, user.Username),
+			Sent:     toSentTransactionsDTO(transactions, user.Username),
 		},
 	}
 	return infoResponse, nil
+}
+
+func (s *MerchShopServiceImpl) SendCoin(ctx context.Context, fromUserId int, req dto.SendCoinRequest) error {
+	const op = "MerchShopService.SendCoin"
+
+	if req.ToUser == "" || req.Amount <= 0 {
+		return fmt.Errorf("%s:error validate request data", op)
+	}
+
+	toUserId, err := s.storageRepository.GetUserIdByUsername(ctx, req.ToUser)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if fromUserId == toUserId {
+		return fmt.Errorf("%s: %w", op, fmt.Errorf("cannot send to same user: %w", op))
+	}
+
+	//TODO обьединить в одну транзакцию
+	fromUser, err := s.storageRepository.GetUserById(ctx, fromUserId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if fromUser.Coins < req.Amount {
+		return fmt.Errorf("%s: %w", op, errors.New("not enough coins"))
+	}
+
+	err = s.storageRepository.TransferCoins(ctx, fromUserId, toUserId, req.Amount)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	err = s.storageRepository.RecordTransaction(ctx, fromUserId, toUserId, req.Amount, "transfer")
+
+	return nil
+}
+
+func (s *MerchShopServiceImpl) BuyItem(ctx context.Context, userId int, itemName string) error {
+	const op = "MerchShopService.BuyItem"
+
+	item, err := s.storageRepository.GetMerchByName(ctx, itemName)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, errors.New("item not found"))
+	}
+
+	err = s.storageRepository.BuyItem(ctx, userId, item.Id, item.Price)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	return nil
+
 }
 
 func toInventoryDTO(inventory []dao.Inventory) []dto.InventoryItem {
@@ -99,10 +152,10 @@ func toInventoryDTO(inventory []dao.Inventory) []dto.InventoryItem {
 	return dtoInventory
 }
 
-func toReceivedTransactionsDTO(transactions []dao.TransactionHistory) []dto.Transaction {
+func toReceivedTransactionsDTO(transactions []dao.TransactionHistory, username string) []dto.Transaction {
 	var receivedTransactions []dto.Transaction
 	for _, t := range transactions {
-		if t.TransactionType == "transfer" && t.FromUser == "" {
+		if t.TransactionType == "transfer" && t.FromUser != username {
 			receivedTransactions = append(receivedTransactions, dto.Transaction{
 				FromUser: t.FromUser,
 				ToUser:   t.ToUser,
@@ -113,10 +166,11 @@ func toReceivedTransactionsDTO(transactions []dao.TransactionHistory) []dto.Tran
 	return receivedTransactions
 }
 
-func toSentTransactionsDTO(transactions []dao.TransactionHistory) []dto.Transaction {
+func toSentTransactionsDTO(transactions []dao.TransactionHistory, username string) []dto.Transaction {
 	var sentTransactions []dto.Transaction
 	for _, t := range transactions {
-		if t.TransactionType == "transfer" && t.FromUser == "" {
+		if t.TransactionType == "transfer" && t.FromUser == username {
+
 			sentTransactions = append(sentTransactions, dto.Transaction{
 				FromUser: t.FromUser,
 				ToUser:   t.ToUser,
@@ -124,5 +178,6 @@ func toSentTransactionsDTO(transactions []dao.TransactionHistory) []dto.Transact
 			})
 		}
 	}
+
 	return sentTransactions
 }
