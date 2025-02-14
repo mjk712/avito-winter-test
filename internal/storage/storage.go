@@ -21,7 +21,6 @@ type Storage interface {
 	GetUserCoinHistory(ctx context.Context, userId int) ([]dao.TransactionHistory, error)
 	GetUserIdByUsername(ctx context.Context, username string) (int, error)
 	TransferCoins(ctx context.Context, fromUserId, toUserId, amount int) error
-	RecordTransaction(ctx context.Context, fromUserId int, toUserId int, amount int, transactionType string) error
 	GetMerchByName(ctx context.Context, name string) (dao.Merch, error)
 	BuyItem(ctx context.Context, userId int, itemId int, price int) error
 }
@@ -162,16 +161,12 @@ func (r *Repository) TransferCoins(ctx context.Context, fromUserId, toUserId, am
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return tx.Commit()
-}
-
-func (r *Repository) RecordTransaction(ctx context.Context, fromUserId, toUserId int, amount int, transactionType string) error {
-	const op = "storage.postgres.record_transaction"
-	_, err := r.DB.QueryxContext(ctx, query.RecordTransaction, fromUserId, toUserId, amount, transactionType)
+	_, err = tx.ExecContext(ctx, query.RecordTransaction, fromUserId, toUserId, amount, "transfer")
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	return nil
+
+	return tx.Commit()
 }
 
 func (r *Repository) GetMerchByName(ctx context.Context, name string) (dao.Merch, error) {

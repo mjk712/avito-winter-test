@@ -106,7 +106,6 @@ func (s *MerchShopServiceImpl) SendCoin(ctx context.Context, fromUserId int, req
 		return fmt.Errorf("%s: %w", op, fmt.Errorf("cannot send to same user: %w", op))
 	}
 
-	//TODO обьединить в одну транзакцию
 	fromUser, err := s.storageRepository.GetUserById(ctx, fromUserId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
@@ -119,8 +118,6 @@ func (s *MerchShopServiceImpl) SendCoin(ctx context.Context, fromUserId int, req
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-
-	err = s.storageRepository.RecordTransaction(ctx, fromUserId, toUserId, req.Amount, "transfer")
 
 	return nil
 }
