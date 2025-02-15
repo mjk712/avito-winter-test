@@ -103,7 +103,7 @@ func (s *MerchShopServiceImpl) SendCoin(ctx context.Context, fromUserId int, req
 	}
 
 	if fromUserId == toUserId {
-		return fmt.Errorf("%s: %w", op, fmt.Errorf("cannot send to same user: %w", op))
+		return fmt.Errorf("%s: %w", op, errors.New("cannot send to same user"))
 	}
 
 	fromUser, err := s.storageRepository.GetUserById(ctx, fromUserId)
