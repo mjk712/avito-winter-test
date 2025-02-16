@@ -48,10 +48,11 @@ func (s *MerchShopServiceImpl) Authenticate(ctx context.Context, reqData dto.Aut
 		} else {
 			return "", fmt.Errorf("%s: %w", op, err)
 		}
-	}
-	// Нашли пользователя - проверяем пароль
-	if reqData.Password != user.Password {
-		return "", errors.New("error invalid password")
+	} else {
+		// Нашли пользователя - проверяем пароль
+		if reqData.Password != user.Password {
+			return "", errors.New("error invalid password")
+		}
 	}
 
 	// После аутентификации генерируем jwt токен

@@ -19,6 +19,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"avito-winter-test/internal/config"
+	httpServer "avito-winter-test/internal/http-server"
 	"avito-winter-test/internal/models/dto"
 	"avito-winter-test/internal/service"
 	"avito-winter-test/internal/storage"
@@ -57,7 +58,7 @@ func (s *BaseTestSuite) setupTestEnvironment(ctx context.Context) {
 	}
 	s.baseURL = "http://localhost:8080"
 
-	s.server = httpserver.NewServer(ctx, slog.Default(), cfg, merchShopService)
+	s.server = httpServer.NewServer(ctx, slog.Default(), cfg, merchShopService)
 
 	// Запускаем сервер
 	go func() {

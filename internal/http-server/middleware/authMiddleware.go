@@ -11,9 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type contextKey string
-
-const userIDKey contextKey = "userID"
+const userIDKey = "userID"
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
