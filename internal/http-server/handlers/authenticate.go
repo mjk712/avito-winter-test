@@ -30,7 +30,8 @@ func Authenticate(ctx context.Context, authService service.AuthService, log *slo
 
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
 			log.Error("error reading request", tools.ErrAttr(err))
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error reading request"})
 			return
 		}
 
@@ -39,6 +40,7 @@ func Authenticate(ctx context.Context, authService service.AuthService, log *slo
 		if err != nil {
 			log.Error("error authenticating", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error authenticating"})
 			return
 		}
 		render.JSON(w, r, dto.AuthResponse{Token: token})

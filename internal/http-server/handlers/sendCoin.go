@@ -26,6 +26,7 @@ func SendCoin(ctx context.Context, merchShopService service.MerchShopService, lo
 		if !ok {
 			log.Error("userId not found in request context")
 			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, dto.ErrorResponse{Error: "userId not found in request context"})
 			return
 		}
 
@@ -33,6 +34,7 @@ func SendCoin(ctx context.Context, merchShopService service.MerchShopService, lo
 		if err := render.DecodeJSON(r.Body, &req); err != nil {
 			log.Error("error decode json", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error decode json"})
 			return
 		}
 
@@ -40,6 +42,7 @@ func SendCoin(ctx context.Context, merchShopService service.MerchShopService, lo
 		if err != nil {
 			log.Error("error sending coin", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error sending coin"})
 			return
 		}
 		w.WriteHeader(http.StatusOK)

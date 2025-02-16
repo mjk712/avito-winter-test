@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"avito-winter-test/internal/models/dto"
 	"context"
 	"log/slog"
 	"net/http"
@@ -25,6 +26,7 @@ func GetUserInfo(ctx context.Context, merchShopService service.MerchShopService,
 		if !ok {
 			log.Error("userId not found in request context")
 			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, dto.ErrorResponse{Error: "userId not found in request context"})
 			return
 		}
 
@@ -32,6 +34,7 @@ func GetUserInfo(ctx context.Context, merchShopService service.MerchShopService,
 		if err != nil {
 			log.Error("error get user info:", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error get user info"})
 			return
 		}
 		render.JSON(w, r, infoResponse)

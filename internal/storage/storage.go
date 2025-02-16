@@ -155,7 +155,7 @@ func (r *Repository) TransferCoins(ctx context.Context, fromUserID, toUserID, am
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	defer func() {
-		if err = tx.Rollback(); err != nil && err != sql.ErrTxDone {
+		if err = tx.Rollback(); err != nil && !errors.Is(sql.ErrTxDone, err) {
 			log.Printf("transaction rollback failed: %v", err)
 		}
 	}()

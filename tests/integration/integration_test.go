@@ -214,3 +214,88 @@ func (s *SendCoinTestSuite) TestFullSendCoinFlow() {
 func TestSendCoinSuite(t *testing.T) {
 	suite.Run(t, new(SendCoinTestSuite))
 }
+
+// --------------Тест аутентификации--------------
+type AuthTestSuite struct {
+	BaseTestSuite
+}
+
+func (s *AuthTestSuite) SetupSuite() {
+	s.setupTestEnvironment(context.Background())
+}
+
+func (s *AuthTestSuite) TestRegisterNewUser() {
+	// Регистрируем нового пользователя
+	reqBody := `{"username": "testuser", "password": "testpass"}`
+	resp, err := http.Post(fmt.Sprintf("%s/api/auth", s.baseURL), "application/json", strings.NewReader(reqBody))
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var authResp dto.AuthResponse
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&authResp))
+	s.Require().NotEmpty(authResp.Token)
+}
+
+func (s *AuthTestSuite) TestRegisterExistingUser() {
+	// Создаём пользователя
+	_, _ = s.createTestUser("existtestuser", "existtestpass")
+
+	// Аутентифицируем существующего пользователя
+	reqBody := `{"username": "existtestuser", "password": "existtestpass"}`
+	resp, err := http.Post(fmt.Sprintf("%s/api/auth", s.baseURL), "application/json", strings.NewReader(reqBody))
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var authResp dto.AuthResponse
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&authResp))
+	s.Require().NotEmpty(authResp.Token)
+}
+
+func (s *AuthTestSuite) TestAuthenticateInvalidPassword() {
+	// Создаём пользователя
+	_, _ = s.createTestUser("testuser", "testpass")
+
+	// Аутентифицируем пользователя с неправильным паролем
+	reqBody := `{"username": "testuser", "password": "invalidtestpass"}`
+	resp, err := http.Post(fmt.Sprintf("%s/api/auth", s.baseURL), "application/json", strings.NewReader(reqBody))
+	s.Require().NoError(err)
+	s.Require().Equal(http.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestAuthTestSuite(t *testing.T) {
+	suite.Run(t, new(AuthTestSuite))
+}
+
+// ---------- Тест получения информации о пользователе ----------
+
+type UserInfoTestSuite struct {
+	BaseTestSuite
+	authToken  string
+	testUserID int
+}
+
+func (s *UserInfoTestSuite) SetupSuite() {
+	s.setupTestEnvironment(context.Background())
+
+	// Создаём тестового пользователя
+	s.authToken, s.testUserID = s.createTestUser("testuser", "testpass")
+}
+
+func (s *UserInfoTestSuite) TestFullUserInfo() {
+	// Получаем информацию о пользователе
+	resp := s.makeRequest("GET", fmt.Sprintf("%s/api/info", s.baseURL), s.authToken, nil)
+	s.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	var info dto.InfoResponse
+	s.Require().NoError(json.NewDecoder(resp.Body).Decode(&info))
+
+	// Проверяем информацию
+	s.Equal(1000, info.Coins)
+	s.Empty(info.Inventory)
+	s.Empty(info.CoinHistory.Received)
+	s.Empty(info.CoinHistory.Sent)
+}
+
+func TestUserInfoTestSuite(t *testing.T) {
+	suite.Run(t, new(UserInfoTestSuite))
+}

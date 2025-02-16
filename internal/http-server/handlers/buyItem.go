@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"avito-winter-test/internal/models/dto"
 	"context"
+	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
 
@@ -25,6 +27,7 @@ func BuyItem(ctx context.Context, merchShopService service.MerchShopService, log
 		if !ok {
 			log.Error("userID not found in request context")
 			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, dto.ErrorResponse{Error: "userID not found in request context"})
 			return
 		}
 		itemName := chi.URLParam(r, "item")
@@ -33,6 +36,7 @@ func BuyItem(ctx context.Context, merchShopService service.MerchShopService, log
 		if err != nil {
 			log.Error("error buy item", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error buy item"})
 			return
 		}
 		w.WriteHeader(http.StatusOK)

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"avito-winter-test/internal/models/dto"
 	"context"
 	"errors"
 	"fmt"
@@ -19,7 +20,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			render.HTML(w, r, "401 Unauthorized")
+			render.JSON(w, r, dto.ErrorResponse{Error: "error authenticating: no token"})
 			return
 		}
 
@@ -31,7 +32,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			render.HTML(w, r, "401 Unauthorized")
+			render.JSON(w, r, dto.ErrorResponse{Error: "error authenticating: err parse token"})
 			return
 		}
 
@@ -39,12 +40,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			userID, err := extractUserIDFromClaims(claims)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				render.HTML(w, r, "401 Unauthorized")
+				render.JSON(w, r, dto.ErrorResponse{Error: "error authenticating: err parse token"})
 			}
 			ctx := context.WithValue(r.Context(), userIDKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
+			render.JSON(w, r, dto.ErrorResponse{Error: "error authenticating: err parse token"})
 		}
 	})
 }
