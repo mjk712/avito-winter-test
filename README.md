@@ -1,35 +1,74 @@
-[![CI](https://github.com/mjk712/avito-winter-test/actions/workflows/ci.yaml/badge.svg)](https://github.com/mjk712/avito-winter-test/actions/workflows/ci.yaml)
+# **Магазин мерча для сотрудников Avito**
 
+[![CI](https://github.com/mjk712/avito-winter-test/actions/workflows/ci.yaml/badge.svg)](https://github.com/mjk712/avito-winter-test/actions/workflows/ci.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/mjk712/avito-winter-test/badge.svg?branch=main)](https://coveralls.io/github/mjk712/avito-winter-test?branch=main)
 
-Магазин мерча
+Этот проект представляет собой сервис для внутреннего магазина мерча компании Avito. Сотрудники могут использовать монеты для покупки товаров и передачи монет друг другу. Сервис предоставляет API для управления балансом, покупками и историей транзакций.
 
-Реализован сервис позволяющий обмениваться монетками и приобретать товары за монеты.
+---
 
-Подробное описание API находится в папке docs
+## **Функциональность**
 
-Инструкция по запуску:
+- **Покупка мерча**: Сотрудники могут покупать товары из магазина за монеты.
+- **Передача монет**: Сотрудники могут передавать монеты друг другу.
+- **История транзакций**: Каждый сотрудник может просматривать историю полученных и отправленных монет.
+- **Инвентарь**: Сотрудники могут просматривать список купленных товаров.
+- **Авторизация**: Используется JWT для аутентификации и авторизации пользователей.
 
-1.Настройка окружения - сервис настраивается при помощи переменных окружения:
+---
 
-SERVER_ADDRESS
+## **Технические детали**
 
-POSTGRES_USERNAME
+### **Стек технологий**
+- **Язык программирования**: Go
+- **База данных**: PostgreSQL
+- **Контейнеризация**: Docker и Docker Compose
+- **Тестирование**: Юнит-тесты, интеграционные тесты
+- **CI/CD**: GitHub Actions
+- **Линтинг**: Настроен через `.golangci.yaml`
 
-POSTGRES_PASSWORD
+### **API**
+Подробное описание API находится в папке [docs](/docs).
 
-POSTGRES_HOST
+---
 
-POSTGRES_PORT
+## **Инструкция по запуску**
 
-POSTGRES_DATABASE
+### **1. Настройка окружения**
+Сервис настраивается с помощью следующих переменных окружения:
 
-POSTGRES_CONN
+- `SERVER_ADDRESS` — адрес сервера (по умолчанию `:8080`)
+- `POSTGRES_USERNAME` — имя пользователя PostgreSQL
+- `POSTGRES_PASSWORD` — пароль PostgreSQL
+- `POSTGRES_HOST` — хост PostgreSQL
+- `POSTGRES_PORT` — порт PostgreSQL
+- `POSTGRES_DATABASE` — имя базы данных
+- `POSTGRES_CONN` — строка подключения к PostgreSQL
+- `ENV` — окружение (например, `dev` или `prod`)
+- `JWT_SECRET` — секретный ключ для JWT
 
-ENV
+### **2. Запуск сервиса**
+1. Убедитесь, что у вас установлены Docker и Docker Compose.
+2. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/mjk712/avito-winter-test.git
+   cd avito-winter-test
+3. Запустите сервис с помощью Docker Compose:
+    ```bash
+   docker-compose up
+4. Сервис будет доступен по адресу http://localhost:8080.
 
-JWT_SECRET
+### **Тестирование**
+**Юнит-тесты**
 
-2. Запуск сервиса осуществляется командой docker-compose up 
+- Проект покрыт юнит-тестами, которые проверяют основные сценарии работы сервиса. 
+- Общее покрытие тестами превышает 40%.
 
-3. Процент покрытия тестами и статус сборки отображены в бейджах
+**Интеграционные тесты**
+
+- Реализованы интеграционные тесты для основных сценариев.
+
+**Запуск тестов**
+   ```bash
+   go test ./...
+

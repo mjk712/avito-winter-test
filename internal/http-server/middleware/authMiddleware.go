@@ -1,12 +1,13 @@
 package middleware
 
 import (
-	"avito-winter-test/internal/models/dto"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
+
+	"avito-winter-test/internal/models/dto"
 
 	"github.com/go-chi/render"
 	"github.com/golang-jwt/jwt/v5"

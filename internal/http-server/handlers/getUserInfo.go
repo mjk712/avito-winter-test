@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"avito-winter-test/internal/models/dto"
 	"context"
 	"log/slog"
 	"net/http"
@@ -9,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 
+	"avito-winter-test/internal/models/dto"
 	"avito-winter-test/internal/service"
 	"avito-winter-test/internal/tools"
 )
