@@ -16,7 +16,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func NewServer(ctx context.Context, log *slog.Logger, cfg *config.Config, merchShopService service.MerchShopService) *http.Server {
+type Services struct {
+	MerchShop service.MerchShopService
+	Auth      service.AuthService
+}
+
+func NewServer(ctx context.Context, log *slog.Logger, cfg *config.Config, services *Services) *http.Server {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
@@ -26,16 +31,16 @@ func NewServer(ctx context.Context, log *slog.Logger, cfg *config.Config, merchS
 	router.Use(middleware.Timeout(60 * time.Second))
 
 	router.Route("/api", func(r chi.Router) {
-		r.Post("/auth", handlers.Authenticate(ctx, merchShopService, log))
-		r.With(merch_shop_middleware.AuthMiddleware).Get("/info", handlers.GetUserInfo(ctx, merchShopService, log))
-		r.With(merch_shop_middleware.AuthMiddleware).Post("/send-coin", handlers.SendCoin(ctx, merchShopService, log))
-		r.With(merch_shop_middleware.AuthMiddleware).Get("/buy/{item}", handlers.BuyItem(ctx, merchShopService, log))
+		r.Post("/auth", handlers.Authenticate(ctx, services.Auth, log))
+		r.With(merch_shop_middleware.AuthMiddleware).Get("/info", handlers.GetUserInfo(ctx, services.MerchShop, log))
+		r.With(merch_shop_middleware.AuthMiddleware).Post("/send-coin", handlers.SendCoin(ctx, services.MerchShop, log))
+		r.With(merch_shop_middleware.AuthMiddleware).Get("/buy/{item}", handlers.BuyItem(ctx, services.MerchShop, log))
 	})
 
 	return &http.Server{
 		Addr:              cfg.Address,
 		BaseContext:       func(net.Listener) context.Context { return ctx },
 		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second,
+		ReadHeaderTimeout: 1 * time.Second,
 	}
 }

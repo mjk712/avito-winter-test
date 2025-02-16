@@ -16,7 +16,7 @@ import (
 // Authenticate Авторизация пользователя
 // @Summary Авторизация пользователя
 
-func Authenticate(ctx context.Context, merchShopService service.MerchShopService, log *slog.Logger) http.HandlerFunc {
+func Authenticate(ctx context.Context, authService service.AuthService, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.Authenticate"
 
@@ -35,7 +35,7 @@ func Authenticate(ctx context.Context, merchShopService service.MerchShopService
 		}
 
 		// Проводим аутентификацию
-		token, err := merchShopService.Authenticate(ctx, req)
+		token, err := authService.Authenticate(ctx, req)
 		if err != nil {
 			log.Error("error authenticating", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusUnauthorized)

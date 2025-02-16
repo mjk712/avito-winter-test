@@ -48,7 +48,10 @@ func (s *BaseTestSuite) setupTestEnvironment(ctx context.Context) {
 	// Инициализируем репозиторий и сервис
 	repo := &storage.Repository{DB: s.db}
 	s.runMigrations()
-	merchShopService := service.NewMerchShopService(repo)
+	services := &httpServer.Services{
+		MerchShop: service.NewMerchShopService(repo),
+		Auth:      service.NewAuthService(repo),
+	}
 
 	// Создаем конфиг и сервер
 	cfg := &config.Config{
@@ -58,7 +61,7 @@ func (s *BaseTestSuite) setupTestEnvironment(ctx context.Context) {
 	}
 	s.baseURL = "http://localhost:8080"
 
-	s.server = httpServer.NewServer(ctx, slog.Default(), cfg, merchShopService)
+	s.server = httpServer.NewServer(ctx, slog.Default(), cfg, services)
 
 	// Запускаем сервер
 	go func() {

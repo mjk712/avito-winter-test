@@ -42,10 +42,13 @@ func main() {
 		return
 	}
 	// Services
-	merchShopService := service.NewMerchShopService(repo)
+	services := &httpServer.Services{
+		MerchShop: service.NewMerchShopService(repo),
+		Auth:      service.NewAuthService(repo),
+	}
 
 	// Server
-	serv := httpServer.NewServer(mainCtx, log, cfg, merchShopService)
+	serv := httpServer.NewServer(mainCtx, log, cfg, services)
 
 	log.Info("starting server")
 
