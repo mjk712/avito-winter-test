@@ -10,11 +10,12 @@
 package storage
 
 import (
-	dao "avito-winter-test/internal/models/dao"
 	context "context"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
+
+	dao "avito-winter-test/internal/models/dao"
 )
 
 // MockStorage is a mock of Storage interface.
@@ -101,9 +102,9 @@ func (mr *MockStorageMockRecorder) GetMerchByName(ctx, name any) *gomock.Call {
 }
 
 // GetUserById mocks base method.
-func (m *MockStorage) GetUserById(ctx context.Context, userId int) (dao.User, error) {
+func (m *MockStorage) GetUserByID(ctx context.Context, userId int) (dao.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserById", ctx, userId)
+	ret := m.ctrl.Call(m, "GetUserByID", ctx, userId)
 	ret0, _ := ret[0].(dao.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -112,7 +113,7 @@ func (m *MockStorage) GetUserById(ctx context.Context, userId int) (dao.User, er
 // GetUserById indicates an expected call of GetUserById.
 func (mr *MockStorageMockRecorder) GetUserById(ctx, userId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserById", reflect.TypeOf((*MockStorage)(nil).GetUserById), ctx, userId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockStorage)(nil).GetUserByID), ctx, userId)
 }
 
 // GetUserCoinHistory mocks base method.
@@ -131,9 +132,9 @@ func (mr *MockStorageMockRecorder) GetUserCoinHistory(ctx, userId any) *gomock.C
 }
 
 // GetUserIdByUsername mocks base method.
-func (m *MockStorage) GetUserIdByUsername(ctx context.Context, username string) (int, error) {
+func (m *MockStorage) GetUserIDByUsername(ctx context.Context, username string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserIdByUsername", ctx, username)
+	ret := m.ctrl.Call(m, "GetUserIDByUsername", ctx, username)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -142,7 +143,7 @@ func (m *MockStorage) GetUserIdByUsername(ctx context.Context, username string) 
 // GetUserIdByUsername indicates an expected call of GetUserIdByUsername.
 func (mr *MockStorageMockRecorder) GetUserIdByUsername(ctx, username any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserIdByUsername", reflect.TypeOf((*MockStorage)(nil).GetUserIdByUsername), ctx, username)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserIDByUsername", reflect.TypeOf((*MockStorage)(nil).GetUserIDByUsername), ctx, username)
 }
 
 // GetUserInventory mocks base method.

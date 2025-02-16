@@ -1,17 +1,19 @@
-package httpServer
+package httpserver
 
 import (
-	"avito-winter-test/internal/config"
-	"avito-winter-test/internal/http-server/handlers"
-	merch_shop_middleware "avito-winter-test/internal/http-server/middleware"
-	"avito-winter-test/internal/service"
 	"context"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net"
 	"net/http"
 	"time"
+
+	"avito-winter-test/internal/config"
+	"avito-winter-test/internal/http-server/handlers"
+	merch_shop_middleware "avito-winter-test/internal/http-server/middleware"
+	"avito-winter-test/internal/service"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func NewServer(ctx context.Context, log *slog.Logger, cfg *config.Config, merchShopService service.MerchShopService) *http.Server {
@@ -31,8 +33,9 @@ func NewServer(ctx context.Context, log *slog.Logger, cfg *config.Config, merchS
 	})
 
 	return &http.Server{
-		Addr:        cfg.Address,
-		BaseContext: func(net.Listener) context.Context { return ctx },
-		Handler:     router,
+		Addr:              cfg.Address,
+		BaseContext:       func(net.Listener) context.Context { return ctx },
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 }

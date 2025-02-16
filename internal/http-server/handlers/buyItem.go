@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"avito-winter-test/internal/service"
-	"avito-winter-test/internal/tools"
 	"context"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
+	"avito-winter-test/internal/service"
+	"avito-winter-test/internal/tools"
 )
 
 func BuyItem(ctx context.Context, merchShopService service.MerchShopService, log *slog.Logger) http.HandlerFunc {
@@ -19,16 +21,20 @@ func BuyItem(ctx context.Context, merchShopService service.MerchShopService, log
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		userId := r.Context().Value("userID").(int)
+		userID, ok := r.Context().Value("userID").(int)
+		if !ok {
+			log.Error("userID not found in request context")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		itemName := chi.URLParam(r, "item")
-		
-		err := merchShopService.BuyItem(ctx, userId, itemName)
+
+		err := merchShopService.BuyItem(ctx, userID, itemName)
 		if err != nil {
 			log.Error("error buy item", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-
 	}
 }

@@ -1,15 +1,17 @@
 package service
 
 import (
-	"avito-winter-test/internal/models/dao"
-	"avito-winter-test/internal/models/dto"
-	"avito-winter-test/internal/storage"
 	"context"
 	"database/sql"
 	"errors"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
-	"testing"
+
+	"avito-winter-test/internal/models/dao"
+	"avito-winter-test/internal/models/dto"
+	"avito-winter-test/internal/storage"
 )
 
 func TestAuthenticate_NewUser(t *testing.T) {
@@ -27,7 +29,7 @@ func TestAuthenticate_NewUser(t *testing.T) {
 	mockRepo.EXPECT().CheckUserAuth(gomock.Any(), "testUser").Return(dao.User{}, sql.ErrNoRows)
 
 	mockRepo.EXPECT().CreateNewUser(gomock.Any(), "testUser", "testPassword").
-		Return(dao.User{Id: 1, Username: "testUser", Password: "testPassword"}, nil)
+		Return(dao.User{ID: 1, Username: "testUser", Password: "testPassword"}, nil)
 
 	token, err := service.Authenticate(context.Background(), req)
 	assert.NoError(t, err)
@@ -47,7 +49,7 @@ func TestAuthenticate_ExistingUser(t *testing.T) {
 	}
 
 	mockRepo.EXPECT().CheckUserAuth(gomock.Any(), "existUser").
-		Return(dao.User{Id: 1, Username: "existUser", Password: "password"}, nil)
+		Return(dao.User{ID: 1, Username: "existUser", Password: "password"}, nil)
 
 	token, err := service.Authenticate(context.Background(), req)
 	assert.NoError(t, err)
@@ -67,7 +69,7 @@ func TestAuthenticate_InvalidPassword(t *testing.T) {
 	}
 
 	mockRepo.EXPECT().CheckUserAuth(gomock.Any(), "existUser").
-		Return(dao.User{Id: 1, Username: "existUser", Password: "password"}, nil)
+		Return(dao.User{ID: 1, Username: "existUser", Password: "password"}, nil)
 
 	_, err := service.Authenticate(context.Background(), req)
 	assert.Error(t, err)
@@ -82,7 +84,7 @@ func TestGetUserInfo(t *testing.T) {
 	service := NewMerchShopService(mockRepo)
 
 	user := dao.User{
-		Id:       1,
+		ID:       1,
 		Username: "testUser",
 		Coins:    1000,
 	}
@@ -119,7 +121,7 @@ func TestSendCoin(t *testing.T) {
 	}
 
 	fromUser := dao.User{
-		Id:    1,
+		ID:    1,
 		Coins: 1000,
 	}
 
@@ -144,7 +146,7 @@ func TestSendCoin_NotEnoughCoins(t *testing.T) {
 	}
 
 	fromUser := dao.User{
-		Id:    1,
+		ID:    1,
 		Coins: 50,
 	}
 
@@ -164,7 +166,7 @@ func TestBuyItem(t *testing.T) {
 	service := NewMerchShopService(mockRepo)
 
 	item := dao.Merch{
-		Id:    1,
+		ID:    1,
 		Name:  "t-shirt",
 		Price: 80,
 	}

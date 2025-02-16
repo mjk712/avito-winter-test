@@ -1,13 +1,10 @@
 package integration
 
 import (
-	testhelpers "avito-winter-test/tests/test-helpers"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/jmoiron/sqlx"
 	"log"
 	"log/slog"
 	"net/http"
@@ -16,13 +13,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/jmoiron/sqlx"
+	"github.com/stretchr/testify/suite"
+
 	"avito-winter-test/internal/config"
-	"avito-winter-test/internal/http-server"
 	"avito-winter-test/internal/models/dto"
 	"avito-winter-test/internal/service"
 	"avito-winter-test/internal/storage"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/stretchr/testify/suite"
+	testhelpers "avito-winter-test/tests/test-helpers"
 )
 
 type BaseTestSuite struct {
@@ -57,7 +57,7 @@ func (s *BaseTestSuite) setupTestEnvironment(ctx context.Context) {
 	}
 	s.baseURL = "http://localhost:8080"
 
-	s.server = httpServer.NewServer(ctx, slog.Default(), cfg, merchShopService)
+	s.server = httpserver.NewServer(ctx, slog.Default(), cfg, merchShopService)
 
 	// Запускаем сервер
 	go func() {

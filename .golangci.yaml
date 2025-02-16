@@ -1,0 +1,73 @@
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  tests: false
+
+output:
+  formats: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    settings:
+      printf:
+        funcs:
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  gocritic:
+    enabled-tags:
+      - performance
+      - style
+      - experimental
+    disabled-checks:
+      - hugeParam
+      - regexpMust
+  goimports:
+    local-prefixes: avito-winter-test
+
+linters:
+  disable-all: true
+  enable:
+    # Основные линтеры
+    - bodyclose
+    - errcheck
+    - govet
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+
+
+    # Стиль кода
+    - gofmt
+    - goimports
+    - whitespace
+
+    # Дополнительные проверки
+    - gocritic
+    - nestif
+    - prealloc
+    - revive
+
+    # Security
+    - gosec
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+    - path: internal/.*
+      text: "xxx"
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+severity:
+  default-severity: error

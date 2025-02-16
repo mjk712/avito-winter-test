@@ -11,7 +11,7 @@ var SearchUser string
 var CreateNewUser string
 
 //go:embed scripts/get_user_by_id.sql
-var GetUserById string
+var GetUserByID string
 
 //go:embed scripts/get_user_coin_history.sql
 var GetUserCoinHistory string
@@ -26,7 +26,7 @@ var DecreaseUserCoins string
 var IncreaseUserCoins string
 
 //go:embed scripts/get_user_id_by_username.sql
-var GetUserIdByUsername string
+var GetUserIDByUsername string
 
 //go:embed scripts/record_transaction.sql
 var RecordTransaction string

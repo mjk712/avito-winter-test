@@ -2,9 +2,10 @@ package service
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"os"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func GenerateJWT(userID int) (string, error) {

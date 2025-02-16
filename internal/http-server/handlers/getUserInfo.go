@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"avito-winter-test/internal/service"
-	"avito-winter-test/internal/tools"
 	"context"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
+
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
+
+	"avito-winter-test/internal/service"
+	"avito-winter-test/internal/tools"
 )
 
 func GetUserInfo(ctx context.Context, merchShopService service.MerchShopService, log *slog.Logger) http.HandlerFunc {
@@ -19,7 +21,12 @@ func GetUserInfo(ctx context.Context, merchShopService service.MerchShopService,
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
-		id := r.Context().Value("userID").(int)
+		id, ok := r.Context().Value("userID").(int)
+		if !ok {
+			log.Error("userId not found in request context")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
 		infoResponse, err := merchShopService.GetUserInfo(ctx, id)
 		if err != nil {

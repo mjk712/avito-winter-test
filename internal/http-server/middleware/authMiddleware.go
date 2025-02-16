@@ -4,11 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/go-chi/render"
-	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	"os"
+
+	"github.com/go-chi/render"
+	"github.com/golang-jwt/jwt/v5"
 )
+
+type contextKey string
+
+const userIDKey contextKey = "userID"
 
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -16,19 +21,19 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			render.HTML(w, r, fmt.Sprintf("401 Unauthorized"))
+			render.HTML(w, r, "401 Unauthorized")
 			return
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, errors.New("invalid token")
+				return nil, fmt.Errorf("%s: invalid token", op)
 			}
 			return []byte(os.Getenv("JWT_SECRET")), nil
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
-			render.HTML(w, r, fmt.Sprintf("401 Unauthorized"))
+			render.HTML(w, r, "401 Unauthorized")
 			return
 		}
 
@@ -36,9 +41,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			userID, err := extractUserIDFromClaims(claims)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
-				render.HTML(w, r, fmt.Sprintf("401 Unauthorized"))
+				render.HTML(w, r, "401 Unauthorized")
 			}
-			ctx := context.WithValue(r.Context(), "userID", userID)
+			ctx := context.WithValue(r.Context(), userIDKey, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)

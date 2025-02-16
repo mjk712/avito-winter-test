@@ -1,17 +1,18 @@
 package main
 
 import (
-	"avito-winter-test/internal/config"
-	httpServer "avito-winter-test/internal/http-server"
-	"avito-winter-test/internal/service"
-	"avito-winter-test/internal/storage"
-	"avito-winter-test/internal/tools"
 	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"avito-winter-test/internal/config"
+	httpServer "avito-winter-test/internal/http-server"
+	"avito-winter-test/internal/service"
+	"avito-winter-test/internal/storage"
+	"avito-winter-test/internal/tools"
 )
 
 const (
@@ -21,9 +22,9 @@ const (
 )
 
 func main() {
-	//config
+	// Config
 	cfg := config.New()
-	//log
+	// Log
 	log := setupLogger(cfg.Env)
 	log.Info(
 		"starting server",
@@ -31,24 +32,24 @@ func main() {
 		slog.String("version", "1"),
 	)
 	log.Debug("debug messages are enabled")
-	//ctx
+	// Context
 	mainCtx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	//storage
+	// Storage
 	repo, err := storage.New(cfg.ConnectionString)
 	if err != nil {
 		log.Error("failed to init storage", tools.ErrAttr(err))
-		os.Exit(1)
+		return
 	}
-	//services
+	// Services
 	merchShopService := service.NewMerchShopService(repo)
 
-	//server
+	// Server
 	serv := httpServer.NewServer(mainCtx, log, cfg, merchShopService)
 
 	log.Info("starting server")
 
-	//Graceful shutdown
+	// Graceful shutdown
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -68,8 +69,7 @@ func main() {
 
 	if err := serv.Shutdown(ctx); err != nil {
 		log.Error("failed to shutdown server", tools.ErrAttr(err))
-
-		os.Exit(1)
+		return
 	}
 	log.Info("server stopped")
 }
