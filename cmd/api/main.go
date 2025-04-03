@@ -71,7 +71,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := serv.Shutdown(ctx); err != nil {
-		log.Error("Server Shutdown:", err)
+		log.Error("Server Shutdown:", tools.ErrAttr(err))
 	}
 	// catching ctx.Done(). timeout of 5 seconds.
 	select {
