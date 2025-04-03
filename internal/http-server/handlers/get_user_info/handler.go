@@ -1,4 +1,4 @@
-package handlers
+package get_user_info
 
 import (
 	"context"
@@ -9,15 +9,26 @@ import (
 	"github.com/go-chi/render"
 
 	"avito-winter-test/internal/models/dto"
-	"avito-winter-test/internal/service"
 	"avito-winter-test/internal/tools"
 )
 
-func GetUserInfo(ctx context.Context, merchShopService service.MerchShopService, log *slog.Logger) http.HandlerFunc {
+type Handler struct {
+	merchShopService merchService
+	log              *slog.Logger
+}
+
+func New(merchShopService merchService, log *slog.Logger) *Handler {
+	return &Handler{
+		merchShopService: merchShopService,
+		log:              log,
+	}
+}
+
+func (h *Handler) GetUserInfo(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.GetUserInfo"
 		w.Header().Set("Content-Type", "application/json")
-		log = log.With(
+		log := h.log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
@@ -30,7 +41,7 @@ func GetUserInfo(ctx context.Context, merchShopService service.MerchShopService,
 			return
 		}
 
-		infoResponse, err := merchShopService.GetUserInfo(ctx, id)
+		infoResponse, err := h.merchShopService.GetUserInfo(ctx, id)
 		if err != nil {
 			log.Error("error get user info:", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)

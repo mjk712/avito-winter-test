@@ -1,23 +1,32 @@
-package handlers
+package send_coin
 
 import (
+	"avito-winter-test/internal/models/dto"
+	"avito-winter-test/internal/tools"
 	"context"
-	"log/slog"
-	"net/http"
-
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
-
-	"avito-winter-test/internal/models/dto"
-	"avito-winter-test/internal/service"
-	"avito-winter-test/internal/tools"
+	"log/slog"
+	"net/http"
 )
 
-func SendCoin(ctx context.Context, merchShopService service.MerchShopService, log *slog.Logger) http.HandlerFunc {
+type Handler struct {
+	merchShopService merchService
+	log              *slog.Logger
+}
+
+func New(merchShopService merchService, log *slog.Logger) *Handler {
+	return &Handler{
+		merchShopService: merchShopService,
+		log:              log,
+	}
+}
+
+func (h *Handler) SendCoin(ctx context.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.SendCoin"
 		w.Header().Set("Content-Type", "application/json")
-		log = log.With(
+		log := h.log.With(
 			slog.String("op", op),
 			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
@@ -38,7 +47,7 @@ func SendCoin(ctx context.Context, merchShopService service.MerchShopService, lo
 			return
 		}
 
-		err := merchShopService.SendCoin(ctx, fromUserID, req)
+		err := h.merchShopService.SendCoin(ctx, fromUserID, req)
 		if err != nil {
 			log.Error("error sending coin", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)
