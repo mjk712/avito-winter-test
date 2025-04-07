@@ -7,6 +7,6 @@ import (
 
 //go:generate mockgen -source=contract.go -destination contract_mocks_test.go -package $GOPACKAGE
 
-type authService interface {
-	Authenticate(ctx context.Context, reqData dto.AuthRequest) (string, error)
+type authUsecase interface {
+	AuthenticateUser(ctx context.Context, reqData dto.AuthRequest) (string, error)
 }

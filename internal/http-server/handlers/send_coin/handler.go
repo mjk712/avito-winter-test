@@ -11,14 +11,14 @@ import (
 )
 
 type Handler struct {
-	merchShopService merchService
-	log              *slog.Logger
+	sendCoinUsecase sendCoinUsecase
+	log             *slog.Logger
 }
 
-func New(merchShopService merchService, log *slog.Logger) *Handler {
+func New(sendCoinUsecase sendCoinUsecase, log *slog.Logger) *Handler {
 	return &Handler{
-		merchShopService: merchShopService,
-		log:              log,
+		sendCoinUsecase: sendCoinUsecase,
+		log:             log,
 	}
 }
 
@@ -47,7 +47,7 @@ func (h *Handler) SendCoin(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		err := h.merchShopService.SendCoin(ctx, fromUserID, req)
+		err := h.sendCoinUsecase.SendCoins(ctx, fromUserID, req)
 		if err != nil {
 			log.Error("error sending coin", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)

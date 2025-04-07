@@ -12,14 +12,14 @@ import (
 )
 
 type Handler struct {
-	merchShopService merchService
-	log              *slog.Logger
+	buyItemUsecase buyItemUsecase
+	log            *slog.Logger
 }
 
-func New(merchShopService merchService, log *slog.Logger) *Handler {
+func New(buyItemUsecase buyItemUsecase, log *slog.Logger) *Handler {
 	return &Handler{
-		merchShopService: merchShopService,
-		log:              log,
+		buyItemUsecase: buyItemUsecase,
+		log:            log,
 	}
 }
 
@@ -41,7 +41,7 @@ func (h *Handler) BuyItem(ctx context.Context) http.HandlerFunc {
 		}
 		itemName := chi.URLParam(r, "item")
 
-		err := h.merchShopService.BuyItem(ctx, userID, itemName)
+		err := h.buyItemUsecase.BuyItem(ctx, userID, itemName)
 		if err != nil {
 			log.Error("error buy item", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)

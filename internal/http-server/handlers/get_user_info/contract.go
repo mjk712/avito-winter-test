@@ -8,6 +8,6 @@ import (
 
 //go:generate mockgen -source=contract.go -destination contract_mocks_test.go -package $GOPACKAGE
 
-type merchService interface {
+type getUserInfoUsecase interface {
 	GetUserInfo(ctx context.Context, userID int) (dto.InfoResponse, error)
 }

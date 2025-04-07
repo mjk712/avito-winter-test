@@ -1,29 +1,28 @@
-package service
+package authenticate_user
 
 import (
+	"avito-winter-test/internal/models/dao"
+	"avito-winter-test/internal/models/dto"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-
-	"avito-winter-test/internal/models/dao"
-	"avito-winter-test/internal/models/dto"
-	"avito-winter-test/internal/storage"
+	"github.com/golang-jwt/jwt/v5"
+	"os"
+	"time"
 )
 
-type AuthService interface {
-	Authenticate(ctx context.Context, reqData dto.AuthRequest) (string, error)
+type Usecase struct {
+	repository repository
 }
 
-type AuthServiceImpl struct {
-	storageRepository storage.Storage
+func New(repository repository) *Usecase {
+	return &Usecase{
+		repository: repository,
+	}
 }
 
-func NewAuthService(storage storage.Storage) AuthService {
-	return &AuthServiceImpl{storageRepository: storage}
-}
-
-func (s *AuthServiceImpl) Authenticate(ctx context.Context, reqData dto.AuthRequest) (string, error) {
+func (uc *Usecase) AuthenticateUser(ctx context.Context, reqData dto.AuthRequest) (string, error) {
 	const op = "MerchShopService.Authenticate"
 
 	// Валидация входных данных
@@ -32,11 +31,11 @@ func (s *AuthServiceImpl) Authenticate(ctx context.Context, reqData dto.AuthRequ
 	}
 	// Проверяем существование пользователя
 	var user dao.User
-	user, err := s.storageRepository.CheckUserAuth(ctx, reqData.Username)
+	user, err := uc.repository.CheckUserAuth(ctx, reqData.Username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			// Создаём нового пользователя если он не существует
-			user, err = s.storageRepository.CreateNewUser(ctx, reqData.Username, reqData.Password)
+			user, err = uc.repository.CreateNewUser(ctx, reqData.Username, reqData.Password)
 			if err != nil {
 				return "", fmt.Errorf("%s: %w", op, err)
 			}
@@ -56,4 +55,21 @@ func (s *AuthServiceImpl) Authenticate(ctx context.Context, reqData dto.AuthRequ
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 	return token, nil
+}
+
+func GenerateJWT(userID int) (string, error) {
+	const op = "service.GenerateJWT"
+	claims := jwt.MapClaims{
+		"userID": userID,
+		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	tokenString, err := token.SignedString(secret)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+	return tokenString, nil
 }

@@ -10,7 +10,6 @@ import (
 
 	"avito-winter-test/internal/config"
 	httpServer "avito-winter-test/internal/http-server"
-	"avito-winter-test/internal/service"
 	"avito-winter-test/internal/storage"
 	"avito-winter-test/internal/tools"
 )
@@ -41,14 +40,9 @@ func main() {
 		log.Error("failed to init storage", tools.ErrAttr(err))
 		return
 	}
-	// Services
-	services := &httpServer.Services{
-		MerchShop: service.NewMerchShopService(repo),
-		Auth:      service.NewAuthService(repo),
-	}
 
 	// Server
-	serv := httpServer.NewServer(mainCtx, log, cfg, services)
+	serv := httpServer.NewServer(mainCtx, log, cfg, repo)
 
 	log.Info("starting server")
 

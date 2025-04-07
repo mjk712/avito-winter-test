@@ -7,6 +7,6 @@ import (
 
 //go:generate mockgen -source=contract.go -destination contract_mocks_test.go -package $GOPACKAGE
 
-type merchService interface {
-	SendCoin(ctx context.Context, fromUserID int, req dto.SendCoinRequest) error
+type sendCoinUsecase interface {
+	SendCoins(ctx context.Context, fromUserID int, req dto.SendCoinRequest) error
 }

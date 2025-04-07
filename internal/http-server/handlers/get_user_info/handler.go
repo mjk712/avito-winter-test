@@ -13,14 +13,14 @@ import (
 )
 
 type Handler struct {
-	merchShopService merchService
-	log              *slog.Logger
+	getUserInfoUsecase getUserInfoUsecase
+	log                *slog.Logger
 }
 
-func New(merchShopService merchService, log *slog.Logger) *Handler {
+func New(getUserInfoUsecase getUserInfoUsecase, log *slog.Logger) *Handler {
 	return &Handler{
-		merchShopService: merchShopService,
-		log:              log,
+		getUserInfoUsecase: getUserInfoUsecase,
+		log:                log,
 	}
 }
 
@@ -41,7 +41,7 @@ func (h *Handler) GetUserInfo(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
-		infoResponse, err := h.merchShopService.GetUserInfo(ctx, id)
+		infoResponse, err := h.getUserInfoUsecase.GetUserInfo(ctx, id)
 		if err != nil {
 			log.Error("error get user info:", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusBadRequest)

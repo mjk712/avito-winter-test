@@ -11,13 +11,13 @@ import (
 )
 
 type Handler struct {
-	authService authService
+	authUsecase authUsecase
 	log         *slog.Logger
 }
 
-func New(authService authService, log *slog.Logger) *Handler {
+func New(authUsecase authUsecase, log *slog.Logger) *Handler {
 	return &Handler{
-		authService: authService,
+		authUsecase: authUsecase,
 		log:         log,
 	}
 }
@@ -42,7 +42,7 @@ func (h *Handler) Authenticate(ctx context.Context) http.HandlerFunc {
 		}
 
 		// Проводим аутентификацию
-		token, err := h.authService.Authenticate(ctx, req)
+		token, err := h.authUsecase.AuthenticateUser(ctx, req)
 		if err != nil {
 			log.Error("error authenticating", tools.ErrAttr(err))
 			w.WriteHeader(http.StatusUnauthorized)
